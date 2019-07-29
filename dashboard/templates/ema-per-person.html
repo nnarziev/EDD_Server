@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" charset="utf-8">
+    <title>YouNoOne</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        h2 {
+            display: inline-block;
+        }
+
+        table {
+            border-collapse: collapse;
+            text-align: center;
+            line-height: 1.5;
+            width: 100%;
+        }
+
+        #table_header th {
+            padding: 10px;
+            font-weight: bold;
+            vertical-align: top;
+            color: #369;
+            border-bottom: 3px solid #036;
+        }
+
+        #table_body th {
+            width: 150px;
+            padding: 10px;
+            font-weight: bold;
+            vertical-align: top;
+            border-bottom: 1px solid #ccc;
+            background: #f3f6f7;
+        }
+
+        table td {
+            width: 350px;
+            padding: 10px;
+            vertical-align: top;
+            border-bottom: 1px solid #ccc;
+            overflow: hidden;
+        }
+    </style>
+
+</head>
+<body>
+
+<h1 style="margin-bottom: 10px">
+    <center>YOU-NO-ONE DASHBOARD</center>
+</h1>
+
+<center style="margin-bottom: 10px">
+    <h2>EMA PAGE</h2>
+</center>
+
+
+<center style="margin-bottom: 10px; color: #ff0000">
+    <h2>{{ username }}</h2>
+</center>
+
+<hr>
+
+<table>
+    <tr id="table_header">
+        <th>Day no.</th>
+        <!--<th>Username</th>-->
+        <th>EMA 1</th>
+        <th>EMA 2</th>
+        <th>EMA 3</th>
+        <th>EMA 4</th>
+        <th>EMA 5</th>
+        <th>EMA 6</th>
+    </tr>
+
+    {% for ema in ema_responses %}
+        <tr id="table_body">
+            <th>{{ ema.day_num }}</th>
+            <!--<td>{{ ema.username.username }}</td>-->
+            <td>{{ ema.ema_1 }}</td>
+            <td>{{ ema.ema_2 }}</td>
+            <td>{{ ema.ema_3 }}</td>
+            <td>{{ ema.ema_4 }}</td>
+            <td>{{ ema.ema_5 }}</td>
+            <td>{{ ema.ema_6 }}</td>
+        </tr>
+    {% endfor %}
+
+</table>
+
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouNoOne</title>
+    <style>
+
+        body {
+            background: #76b852; /* fallback for old browsers */
+            background: -webkit-linear-gradient(right, #76b852, #8DC26F);
+            background: -moz-linear-gradient(right, #76b852, #8DC26F);
+            background: -o-linear-gradient(right, #76b852, #8DC26F);
+            background: linear-gradient(to left, #76b852, #8DC26F);
+            font-family: "Roboto", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .login-page {
+            width: 560px;
+            padding: 1% 0 0;
+            margin: auto;
+        }
+
+        .form {
+            position: relative;
+            z-index: 1;
+            background: #FFFFFF;
+            max-width: 360px;
+            margin: 0 auto 100px;
+            padding: 45px;
+            text-align: center;
+            box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+        }
+
+        .form input {
+            font-family: "Roboto", sans-serif;
+            outline: 0;
+            background: #f2f2f2;
+            width: 100%;
+            border: 0;
+            margin: 15px 0 0;
+            padding: 15px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .form #button {
+            font-family: "Roboto", sans-serif;
+            text-transform: uppercase;
+            outline: 0;
+            background: #4CAF50;
+            width: 100%;
+            border: 0;
+            padding: 15px;
+            color: #FFFFFF;
+            font-size: 14px;
+            -webkit-transition: all 0.3 ease;
+            transition: all 0.3 ease;
+            cursor: pointer;
+        }
+
+        .form #button:hover, .form #button:active, .form #button:focus {
+            background: #43A047;
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 16px;
+            color: #6e6e6e;
+
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            padding: 3px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: floralwhite;
+        }
+
+    </style>
+</head>
+<body>
+
+<br>
+<br>
+
+<div class="login-page">
+    <div class="form">
+        <form class="login-form" action="/dashboard/csv" method="post">
+            {% csrf_token %}
+            <table>
+                <tr>
+                    <th>Data source ID</th>
+                    <th>Data source name</th>
+                </tr>
+                <tr>
+                    <td> 1</td>
+                    <td>Accelerometer</td>
+                </tr>
+                <tr>
+                    <td> 2</td>
+                    <td>Stationary duration</td>
+                </tr>
+                <tr>
+                    <td> 3</td>
+                    <td>Significant motion</td>
+                </tr>
+                <tr>
+                    <td> 4</td>
+                    <td>Step detector</td>
+                </tr>
+                <tr>
+                    <td> 5</td>
+                    <td>Unlocked state duration</td>
+                </tr>
+                <tr>
+                    <td> 6</td>
+                    <td>Phone calls duration</td>
+                </tr>
+                <tr>
+                    <td> 7</td>
+                    <td>Light sensor</td>
+                </tr>
+                <tr>
+                    <td> 8</td>
+                    <td>App usage duration</td>
+                </tr>
+                <tr>
+                    <td> 9</td>
+                    <td>Heart rate sensor</td>
+                </tr>
+                <tr>
+                    <td> 10</td>
+                    <td>EMA</td>
+                </tr>
+            </table>
+            <input type="text" placeholder="Username" name="username"/>
+            <input type="text" placeholder="Data source" name="data_src"/>
+            <input id="button" type="submit" value="Extract">
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
