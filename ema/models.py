@@ -1,14 +1,19 @@
 from django.db import models
+import datetime
 from django.db.models.deletion import CASCADE
 
 
 # Create your models here.
 class Response(models.Model):
     username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
-    day_num = models.SmallIntegerField(default=0)
-    ema_1 = models.CharField(max_length=22, default='-,-,-,-,-')
-    ema_2 = models.CharField(max_length=22, default='-,-,-,-,-,-/-')
-    ema_3 = models.CharField(max_length=22, default='-,-,-,-,-')
-    ema_4 = models.CharField(max_length=22, default='-,-,-,-,-')
-    ema_5 = models.CharField(max_length=22, default='-,-,-,-,-')
-    ema_6 = models.CharField(max_length=22, default='-,-,-,-,-')
+    day_num = models.SmallIntegerField(default=None)
+    ema_order = models.SmallIntegerField(default=None)
+    mood = models.SmallIntegerField(default=-1)
+    sleep_hour = models.SmallIntegerField(default=-1)
+    sleep_minute = models.SmallIntegerField(default=-1)
+    food = models.SmallIntegerField(default=-1)
+    physical_activity = models.SmallIntegerField(default=-1)
+    social_activity = models.SmallIntegerField(default=-1)
+    stress = models.SmallIntegerField(default=-1)
+    time_expected = models.BigIntegerField(default=0)
+    time_responded = models.BigIntegerField(default=0)

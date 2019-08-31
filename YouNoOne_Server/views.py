@@ -27,12 +27,11 @@ def fetch_mood_data(request):
     if 'username' in json_body and 'password' and is_user_valid(json_body['username'], json_body['password']):
         username = json_body['username']
         participant = Participant.objects.get(username=username)
-        cur_day = (datetime.datetime.now() - datetime.datetime.fromtimestamp(participant.register_datetime)).days + 1
-        ema_responses = Response.objects.filter(username=participant, day_num=cur_day)
-        tmp_data = []
+        current_day_num = participant.current_day_num()
+        ema_responses = Response.objects.filter(username=participant, day_num=current_day_num).order_by('time_expected')
+        data = []
         for ema in ema_responses:
-            tmp_data += [ema.ema_1.split(',')[0], ema.ema_2.split(',')[0], ema.ema_3.split(',')[0], ema.ema_4.split(',')[0], ema.ema_5.split(',')[0], ema.ema_6.split(',')[0]]
-        data = [int(elem) if elem != '-' else 0 for elem in tmp_data]
+            data += [ema.mood]
         return JsonResponse(data={'result': RES_SUCCESS, 'data': data})
     else:
         return JsonResponse(data={'result': RES_BAD_REQUEST})

@@ -12,6 +12,7 @@ class DeltaTemplate(Template):
 class Participant(models.Model):
     username = models.CharField(max_length=25, primary_key=True)
     phone_num = models.CharField(default="", max_length=16)
+    device_info = models.TextField(blank=True, default="")
     password = models.CharField(max_length=16)
     register_datetime = models.BigIntegerField(default=datetime.datetime.now().timestamp())
     last_login_datetime = models.BigIntegerField(default=datetime.datetime.now().timestamp())

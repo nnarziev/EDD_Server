@@ -29,13 +29,25 @@ def submit_api(request):
             'password' in json_body and \
             'ema_timestamp' in json_body and \
             'ema_order' in json_body and \
-            'ema_responses' in json_body and \
+            'mood' in json_body and \
+            'food' in json_body and \
+            'physical_activity' in json_body and \
+            'social_activity' in json_body and \
+            'stress' in json_body and \
+            'sleep_hour' in json_body and \
+            'sleep_minute' in json_body and \
             is_user_valid(json_body['username'], json_body['password']):
 
         username = json_body['username']
         ema_timestamp = json_body['ema_timestamp']
         ema_order = json_body['ema_order']
-        ema_responses = json_body['ema_responses']
+        mood = json_body['mood']
+        food = json_body['food']
+        physical_activity = json_body['physical_activity']
+        social_activity = json_body['social_activity']
+        stress = json_body['stress']
+        sleep_hour = json_body['sleep_hour']
+        sleep_minute = json_body['sleep_minute']
 
         participant = Participant.objects.get(username=username)
 
@@ -45,22 +57,19 @@ def submit_api(request):
         reg_datetime_tmp = datetime.datetime(reg_datetime.year, reg_datetime.month, reg_datetime.day)
         current_day_num = (ema_datetime_tmp - reg_datetime_tmp).days + 1
 
-        current_ema_row = models.Response.objects.all().get(username__username=username, day_num=current_day_num)
+        current_ema_row = models.Response.objects.all().get(username__username=username, day_num=current_day_num, ema_order=ema_order)
 
-        if ema_order == 1:
-            current_ema_row.ema_1 = ema_responses
-        elif ema_order == 2:
-            current_ema_row.ema_2 = ema_responses
-        elif ema_order == 3:
-            current_ema_row.ema_3 = ema_responses
-        elif ema_order == 4:
-            current_ema_row.ema_4 = ema_responses
-        elif ema_order == 5:
-            current_ema_row.ema_5 = ema_responses
-        elif ema_order == 6:
-            current_ema_row.ema_6 = ema_responses
+        current_ema_row.time_responded = ema_timestamp / 1000
+        current_ema_row.mood = mood
+        current_ema_row.food = food
+        current_ema_row.physical_activity = physical_activity
+        current_ema_row.social_activity = social_activity
+        current_ema_row.stress = stress
+        current_ema_row.sleep_hour = sleep_hour
+        current_ema_row.sleep_minute = sleep_minute
 
         current_ema_row.save()
+
         return JsonResponse(data={'result': RES_SUCCESS})
 
     else:

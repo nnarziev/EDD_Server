@@ -71,7 +71,6 @@
         <th>Phone no.</th>
         <th>Last data upload (phone)</th>
         <th>Last data upload (watch)</th>
-        <th>Reg stamp</th>
     </tr>
 
     {% for participant in participants %}
@@ -85,7 +84,6 @@
             <td>{{ participant.phone_num }}</td>
             <td>{{ participant.last_ds_smartphone_diff }}</td>
             <td>{{ participant.last_ds_smartwatch_diff }}</td>
-            <td>{{ participant.register_datetime }}</td>
         </tr>
     {% endfor %}
 

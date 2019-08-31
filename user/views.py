@@ -34,24 +34,40 @@ def is_user_valid(username, password):
 def register_api(request):
     try:
         params = extract_post_params(request)
-        if 'username' in params and 'password' in params and 'phone_num' in params:
+        if 'username' in params and 'password' in params and 'phone_num' in params and 'device_info' in params:
             username = params['username']
             phone = params['phone_num']
+            device_info = params['device_info']
             password = params['password']
             print('-------------- Sign Up -------------')
             print("User: ", username, "\tPassword: ", password)
+
+            now_date = datetime.datetime.now()
+
             if user_exists(username):
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'username is taken'
                 })
             else:
-                new_participant = models.Participant(username=username, phone_num=phone, password=password, register_datetime=datetime.datetime.now().timestamp(), heartbeat_smartwatch=datetime.datetime.now().timestamp(),
-                                                     heartbeat_smartphone=datetime.datetime.now().timestamp())
+                # create a new participant
+                new_participant = models.Participant(username=username,
+                                                     phone_num=phone,
+                                                     device_info=device_info,
+                                                     password=password,
+                                                     register_datetime=now_date.timestamp(),
+                                                     heartbeat_smartwatch=now_date.timestamp(),
+                                                     heartbeat_smartphone=now_date.timestamp())
                 new_participant.save()
 
-                for i in range(1, 32):
-                    ema_user_data = Response(username=new_participant, day_num=i)
-                    ema_user_data.save()
+                ema_hours = [7, 10, 13, 16, 19, 22] # expected hours for ema responses
+
+                # create EMA entries for this user
+                for day in range(1, 32):
+                    for order in range(1, 7):
+                        now_date = now_date.replace(hour=ema_hours[order-1], minute=0, second=0, microsecond=0)
+                        ema_user_data = Response(username=new_participant, day_num=day, ema_order=order, time_expected=now_date.timestamp())
+                        ema_user_data.save()
+                    now_date = now_date + datetime.timedelta(days=1)
 
                 return JsonResponse(data={'result': RES_SUCCESS})
     except ValueError as e:
@@ -147,20 +163,11 @@ def get_user_stat_api(request):
                 data_loaded_phone = participant_obj.phone_data_size()
 
                 # region Number of ema responses
-                ema_obj = Response.objects.get(username=participant_obj, day_num=current_day_num)
+                ema_obj = Response.objects.filter(username=participant_obj, day_num=current_day_num)
 
-                if ema_obj.ema_1[0] != "-":
-                    ema_counter += 1
-                if ema_obj.ema_2[0] != "-":
-                    ema_counter += 1
-                if ema_obj.ema_3[0] != "-":
-                    ema_counter += 1
-                if ema_obj.ema_4[0] != "-":
-                    ema_counter += 1
-                if ema_obj.ema_5[0] != "-":
-                    ema_counter += 1
-                if ema_obj.ema_6[0] != "-":
-                    ema_counter += 1
+                for ema in ema_obj:
+                    if ema.time_responded != 0:
+                        ema_counter += 1
 
                 return JsonResponse(data={'result': RES_SUCCESS,
                                           'day_number': current_day_num,

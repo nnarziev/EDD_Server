@@ -62,7 +62,7 @@ def submit_api(request):
 
             data_set = csv_file.read().decode('UTF-8')
 
-            # region Precessing the received data
+            # region Processing the received data
             io_string = io.StringIO(data_set)
             print(username, ";\t", device_name, ";\tsize: ", len(data_set) / 1024)
             try:
