@@ -13,17 +13,21 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+import os
 from django.urls import re_path
 from django.urls import include
 from YouNoOne_Server import views
 
+if not os.path.exists('audio/'):
+    os.mkdir('audio')
+    print('directory "audio/" has been created')
+
+
 urlpatterns = [
-    # path('admin/', admin.site.urls),
     re_path(r'user/', include('user.urls')),
     re_path(r'ema/', include('ema.urls')),
     re_path(r'sensor_data/', include('sensor_data.urls')),
     re_path(r'dashboard/', include('dashboard.urls')),
-    re_path(r'get_mood_data/', views.fetch_mood_data)
+    re_path(r'get_mood_data/', views.fetch_mood_data),
+    re_path(r'submit_audio', views.submit_audio)
 ]
