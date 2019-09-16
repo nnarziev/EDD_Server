@@ -26,7 +26,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
-    '165.246.43.163'
+    '165.246.43.163',
+    '165.246.43.97'
 ]
 
 # Application definition
@@ -83,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'younoone_db',
         'USER': 'postgres',
-        'PASSWORD': 'nslab123',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432',
     }
