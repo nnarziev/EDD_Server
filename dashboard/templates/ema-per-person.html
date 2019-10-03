@@ -68,24 +68,42 @@
     <tr id="table_header">
         <th>Day no.</th>
         <!--<th>Username</th>-->
-        <th>EMA 1</th>
-        <th>EMA 2</th>
-        <th>EMA 3</th>
-        <th>EMA 4</th>
-        <th>EMA 5</th>
-        <th>EMA 6</th>
+        <th>EMA order</th>
+        <th>mood</th>
+        <th>sleep h.</th>
+        <th>sleep m.</th>
+        <th>food</th>
+        <th>phys. act.</th>
+        <th>soc. act.</th>
+        <th>stress</th>
+        <th>expected time</th>
+        <th>responded time</th>
     </tr>
 
     {% for ema in ema_responses %}
         <tr id="table_body">
             <th>{{ ema.day_num }}</th>
             <!--<td>{{ ema.username.username }}</td>-->
-            <td>{{ ema.ema_1 }}</td>
-            <td>{{ ema.ema_2 }}</td>
-            <td>{{ ema.ema_3 }}</td>
-            <td>{{ ema.ema_4 }}</td>
-            <td>{{ ema.ema_5 }}</td>
-            <td>{{ ema.ema_6 }}</td>
+            <td>
+                {{ ema.ema_order }}
+            </td>
+            <td>
+                {% if ema.mood == -1 %}none{% else %}{{ ema.mood }}{% endif %}
+            </td>
+            <td>
+                {% if ema.sleep_hour == -1 %}none{% else %}{{ ema.sleep_hour }}{% endif %}
+            </td>
+            <td>
+                {% if ema.sleep_minute == -1 %}none{% else %}{{ ema.sleep_minute }}{% endif %}
+            </td>
+            <td>
+                {% if ema.food == -1 %}none{% else %}{{ ema.food}}{% endif %}
+            </td>
+            <td>{% if ema.physical_activity == -1 %}none{% else %}{{ ema.physical_activity}}{% endif %}</td>
+            <td>{% if ema.social_activity == -1 %}none{% else %}{{ ema.social_activity }}{% endif %}</td>
+            <td>{% if ema.stress == -1 %}none{% else %}{{ ema.stress}}{% endif %}</td>
+            <td>{{ ema.time_expected }}</td>
+            <td>{% if ema.time_responded == 0 %}none{% else %}{{ ema.time_responded}}{% endif %}</td>
         </tr>
     {% endfor %}
 

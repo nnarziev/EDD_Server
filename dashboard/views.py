@@ -156,7 +156,7 @@ def extract_data(request, exportCSV):
 
 
 def ema_per_person(request, user_id):
-    ema_responses = Response.objects.filter(username=user_id).order_by('day_num')[:100]
+    ema_responses = Response.objects.filter(username=user_id).order_by('day_num', 'ema_order')[:187]
     context = {
         'username': user_id,
         'ema_responses': ema_responses

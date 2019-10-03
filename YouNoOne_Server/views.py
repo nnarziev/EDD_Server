@@ -6,6 +6,7 @@ from django.views.decorators.http import require_http_methods
 from user.models import Participant
 from ema.models import Response
 import json
+import subprocess
 
 
 def user_exists(username):
@@ -55,6 +56,8 @@ def submit_audio(request):
             with open('audio/%s_%s.mp4' % (username, timestamp), 'wb') as w:
                 w.write(audio_data)
 
+            convert_command = 'C:\\ffmpeg\\bin\\ffmpeg.exe -i audio/%s_%s.mp4 -ab 160k -ac 2 -ar 44100 -vn audio/%s_%s.wav' % (username, timestamp, username, timestamp)
+            subprocess.call(convert_command, shell=True)
             return JsonResponse(data={'result': RES_SUCCESS})
     except ValueError as e:
         print(e)
