@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from user.models import Participant
 from ema.models import Response
 import sensor_data.models as models
@@ -11,7 +11,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
-from user.views import RES_BAD_REQUEST
+from Tools import RES_BAD_REQUEST
 
 
 def index(request):
@@ -41,10 +41,11 @@ def extract_data(request, exportCSV):
                 else:
                     username = params['username']
                     data_src = params['data_src']
-                    participant = Participant.objects.get(username=username)
+                    participant = Participant.objects.get(id=username)
                     try:
+                        # TODO: revisit all ifs and fix them
                         response = HttpResponse(content_type='text/csv')
-                        if data_src == sensor_views.DATA_SRC_ACC:
+                        if data_src == sensor_views.SRC_SP_ACC:
                             new_raw_data = models.acc.objects.filter(username=participant).order_by('timestamp')
                             response = HttpResponse(content_type='text/csv')
                             response['Content-Disposition'] = 'attachment;filename=%s(acc).csv' % username
@@ -54,7 +55,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp': data.timestamp, 'val_x': data.value_x, 'val_y': data.value_y, 'val_z': data.value_z, 'device': data.device})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_STEP_DETECTOR:
+                        elif data_src == sensor_views.SRC_SP_STEP_DETECTOR:
                             new_raw_data = models.step_detector.objects.filter(username=participant).order_by('timestamp')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(step).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp'])
@@ -63,7 +64,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp': data.timestamp})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_SIGNIFICANT_MOTION:
+                        elif data_src == sensor_views.SRC_SP_SIGNIFICANT_MOTION:
                             new_raw_data = models.significant_motion.objects.filter(username=participant).order_by('timestamp')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(sig_motion).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp'])
@@ -72,7 +73,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp': data.timestamp})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_STATIONARY_DUR:
+                        elif data_src == sensor_views.SRC_SP_STATIONARY_DUR:
                             new_raw_data = models.stationary_dur.objects.filter(username=participant).order_by('timestamp_endtime')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(stationary_dur).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp_endtime', 'duration'])
@@ -81,7 +82,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp_endtime': data.timestamp_endtime, 'duration': data.duration})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_UNLOCKED_DUR:
+                        elif data_src == sensor_views.SRC_SP_UNLOCKED_DUR:
                             new_raw_data = models.unlocked_dur.objects.filter(username=participant).order_by('timestamp_endtime')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(unlock_dur).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp_endtime', 'duration'])
@@ -90,7 +91,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp_endtime': data.timestamp_endtime, 'duration': data.duration})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_PHONE_CALLS:
+                        elif data_src == sensor_views.SRC_SP_PHONE_CALLS:
                             new_raw_data = models.phone_calls.objects.filter(username=participant).order_by('timestamp_endtime')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(phone_call_dur).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp_endtime', 'type', 'duration'])
@@ -99,7 +100,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp_endtime': data.timestamp_endtime, 'type': data.call_type, 'duration': data.duration})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_LIGHT:
+                        elif data_src == sensor_views.SRC_SP_LIGHT:
                             new_raw_data = models.light_intensity.objects.filter(username=participant).order_by('timestamp')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(light).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp', 'value'])
@@ -108,7 +109,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp': data.timestamp, 'value': data.value})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_APP_USAGE:
+                        elif data_src == sensor_views.SRC_SP_APP_USAGE:
                             new_raw_data = models.app_usage.objects.filter(username=participant).order_by('timestamp')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(app_usage).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp', 'app_name', 'value'])
@@ -117,7 +118,7 @@ def extract_data(request, exportCSV):
                                 writer.writerow({'timestamp': data.timestamp, 'app_name': data.app_name, 'value': data.value})
                             return response
 
-                        elif data_src == sensor_views.DATA_SRC_HRM:
+                        elif data_src == sensor_views.DEVICE_TYPE_WATCH:
                             new_raw_data = models.hrm.objects.filter(username=participant).order_by('timestamp')[:1000000]
                             response['Content-Disposition'] = 'attachment;filename=%s(hrm).csv' % username
                             writer = csv.DictWriter(response, fieldnames=['timestamp', 'value'])
@@ -125,6 +126,7 @@ def extract_data(request, exportCSV):
                             for data in new_raw_data:
                                 writer.writerow({'timestamp': data.timestamp, 'value': data.value})
                             return response
+
                         elif data_src == '10':
                             ema_responses = Response.objects.filter(username=participant).order_by('day_num')
                             response['Content-Disposition'] = 'attachment;filename=%s(EMA).csv' % username
@@ -156,7 +158,7 @@ def extract_data(request, exportCSV):
 
 
 def ema_per_person(request, user_id):
-    ema_responses = Response.objects.filter(username=user_id).order_by('day_num', 'ema_order')[:187]
+    ema_responses = Response.objects.filter(username=user_id).order_by('day_num', 'ema_order')[:260]
     context = {
         'username': user_id,
         'ema_responses': ema_responses

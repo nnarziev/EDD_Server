@@ -1,43 +1,49 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import datetime
 
-from Tools import extract_post_params
+from Tools import extract_post_params, RES_FAILURE, RES_SUCCESS, RES_BAD_REQUEST, is_user_valid
+from sensor_data.models import app_usage_stats
 from user.models import Participant
 import io
 import csv
+
 from . import models
-from user.views import RES_SUCCESS
-from user.views import RES_FAILURE
-from user.views import RES_BAD_REQUEST
 
 # region Constants
 DEVICE_TYPE_WATCH = "sw"
 DEVICE_TYPE_PHONE = "sp"
-DATA_SRC_ACC = "1"
-DATA_SRC_STATIONARY_DUR = "2"
-DATA_SRC_SIGNIFICANT_MOTION = "3"
-DATA_SRC_STEP_DETECTOR = "4"
-DATA_SRC_UNLOCKED_DUR = "5"
-DATA_SRC_PHONE_CALLS = "6"
-DATA_SRC_LIGHT = "7"
-DATA_SRC_APP_USAGE = "8"
-DATA_SRC_HRM = "9"
+
+SRC_SP_ACC = "1"
+SRC_SP_STATIONARY_DUR = "2"
+SRC_SP_SIGNIFICANT_MOTION = "3"
+SRC_SP_STEP_DETECTOR = "4"
+SRC_SP_UNLOCKED_DUR = "5"
+SRC_SP_PHONE_CALLS = "6"
+SRC_SP_LIGHT = "7"
+SRC_SP_APP_USAGE = "8"
+SRC_SP_GPS_LOCATIONS = "9"
+SRC_SP_ACTIVITY = "10"
+SRC_SP_TOTAL_DIST_COVERED = "11"
+SRC_SP_MAX_DIST_FROM_HOME = "12"
+SRC_SP_MAX_DIST_TWO_LOCATIONS = "13"
+SRC_SP_RADIUS_OF_GYRATION = "14"
+SRC_SP_STDDEV_OF_DISPLACEMENT = "15"
+SRC_SP_NUM_OF_DIF_PLACES = "16"
+SRC_SP_AUDIO_LOUDNESS = "17"
+
+SRC_SW_HRM = "50"
+SRC_SW_ACC = "51"
+
+LOCATION_HOME = "HOME"
+LOCATION_DORM = "DORM"
+LOCATION_UNIV = "UNIV"
+LOCATION_LIBRARY = "LIBRARY"
+LOCATION_STUDY = "STUDY"
 
 
 # endregion
-
-# Create your views here.
-def user_exists(username):
-    return Participant.objects.filter(username=username).exists()
-
-
-def is_user_valid(username, password):
-    if user_exists(username):
-        participant = Participant.objects.get(username=username)
-        return participant.password == password
-    return False
 
 
 @csrf_exempt
@@ -45,74 +51,109 @@ def is_user_valid(username, password):
 def submit_api(request):
     try:
         params = extract_post_params(request)
+
         if 'username' not in params or 'password' not in params or 'file' not in request.FILES:
             raise ValueError('username/password/file is not in request params')
         if not is_user_valid(params['username'], params['password']):
             return JsonResponse({'result': RES_FAILURE})
         else:
             username = params['username']
-            participant = Participant.objects.get(username=username)
-
+            participant = Participant.objects.get(id=username)
+            reg_time = participant.register_datetime
             csv_file = request.FILES['file']
             device_name = csv_file.name.split('_')[0]
-            if device_name == 'smartphone':
-                device_name = DEVICE_TYPE_PHONE
-            elif device_name == 'smartwatch':
-                device_name = DEVICE_TYPE_WATCH
 
             data_set = csv_file.read().decode('UTF-8')
 
             # region Processing the received data
             io_string = io.StringIO(data_set)
-            print(username, ";\t", device_name, ";\tsize: ", len(data_set) / 1024)
+            print(username, ";\tsize: ", len(data_set) / 1024)
             try:
                 for column in csv.reader(io_string, delimiter=',', quotechar="|"):
                     data_src = column[0]
-                    timestamp = column[1]
-                    values = column[2]
+                    values = column[1]
 
-                    if data_src == DATA_SRC_ACC:
-                        try:
-                            val_x, val_y, val_z = values.split(" ")
-                        except ValueError as e:
-                            print("Acc caused problem: ", e)
-                        new_raw_data = models.acc(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, device=device_name)
+                    if data_src == SRC_SP_ACC:
+                        timestamp, val_x, val_y, val_z = values.split(" ")
+                        new_raw_data = models.acc_sp(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_STEP_DETECTOR:
-                        new_raw_data = models.step_detector(username=participant, timestamp=timestamp, device=device_name)
+                    elif data_src == SRC_SW_ACC:
+                        timestamp, val_x, val_y, val_z, ema_order = values.split(" ")
+                        new_raw_data = models.acc_sw(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, ema_order=ema_order, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_SIGNIFICANT_MOTION:
-                        new_raw_data = models.significant_motion(username=participant, timestamp=timestamp, device=device_name)
+                    elif data_src == SRC_SP_STEP_DETECTOR:
+                        timestamp = values
+                        new_raw_data = models.step_detector(username=participant, timestamp=timestamp, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_STATIONARY_DUR:
-                        new_raw_data = models.stationary_dur(username=participant, timestamp_endtime=timestamp, duration=values, device=device_name)
+                    elif data_src == SRC_SP_SIGNIFICANT_MOTION:
+                        timestamp = values
+                        new_raw_data = models.significant_motion(username=participant, timestamp=timestamp, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_UNLOCKED_DUR:
-                        new_raw_data = models.unlocked_dur(username=participant, timestamp_endtime=timestamp, duration=values, device=device_name)
+                    elif data_src == SRC_SP_UNLOCKED_DUR:
+                        start, end, duration = values.split(" ")
+                        new_raw_data = models.unlocked_dur(username=participant, timestamp_start=start, timestamp_end=end, duration=duration, day_num=get_day_num(float(end), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_PHONE_CALLS:
-                        try:
-                            call_type, duration = values.split("/")
-                        except ValueError as e:
-                            print("Phone calls caused problem: ", e)
-                        new_raw_data = models.phone_calls(username=participant, timestamp_endtime=timestamp, call_type=call_type, duration=duration, device=device_name)
+                    elif data_src == SRC_SP_PHONE_CALLS:
+                        start, end, call_type, duration = values.split(" ")
+                        new_raw_data = models.phone_calls(username=participant, timestamp_start=start, timestamp_end=end, call_type=call_type, duration=duration, day_num=get_day_num(float(end), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_LIGHT:
-                        new_raw_data = models.light_intensity(username=participant, timestamp=timestamp, value=values, device=device_name)
+                    elif data_src == SRC_SP_LIGHT:
+                        timestamp, value = values.split(" ")
+                        new_raw_data = models.light_intensity(username=participant, timestamp=timestamp, value=value, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_APP_USAGE:
-                        try:
-                            app_name, duration = values.split("|")
-                        except ValueError as e:
-                            print("App usage caused problem: ", e)
-                        new_raw_data = models.app_usage(username=participant, timestamp=timestamp, app_name=app_name, value=duration, device=device_name)
+                    elif data_src == SRC_SW_HRM:
+                        timestamp, value, ema_order = values.split(" ")
+                        new_raw_data = models.hrm(username=participant, timestamp=timestamp, value=value, ema_order=ema_order, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == DATA_SRC_HRM:
-                        new_raw_data = models.hrm(username=participant, timestamp=timestamp, value=values, device=device_name)
+                    elif data_src == SRC_SP_GPS_LOCATIONS:
+                        timestamp, lat, lng, accuracy, altitude = values.split(" ")
+                        new_raw_data = models.gps_locations(username=participant, timestamp=timestamp, lat=lat, lng=lng, accuracy=accuracy, altitude=altitude, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
+                    elif data_src == SRC_SP_ACTIVITY:
+                        timestamp, activity_type, confidence = values.split(" ")
+                        new_raw_data = models.activities(username=participant, timestamp=timestamp, activity_type=activity_type, confidence=confidence, day_num=get_day_num(float(timestamp), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_TOTAL_DIST_COVERED:
+                        start, end, value, ema_order = values.split(" ")
+                        new_raw_data = models.total_dist_covered(username=participant, timestamp_start=start, timestamp_end=end, value=value, ema_order=ema_order, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_MAX_DIST_FROM_HOME:
+                        start, end, value, ema_order = values.split(" ")
+                        new_raw_data = models.max_dist_from_home(username=participant, timestamp_start=start, timestamp_end=end, value=value, ema_order=ema_order, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_MAX_DIST_TWO_LOCATIONS:
+                        start, end, value, ema_order = values.split(" ")
+                        new_raw_data = models.max_dist_two_locations(username=participant, timestamp_start=start, timestamp_end=end, value=value, ema_order=ema_order, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_RADIUS_OF_GYRATION:
+                        start, end, value, ema_order = values.split(" ")
+                        new_raw_data = models.radius_of_gyration(username=participant, timestamp_start=start, timestamp_end=end, value=value, ema_order=ema_order, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_STDDEV_OF_DISPLACEMENT:
+                        start, end, value, ema_order = values.split(" ")
+                        new_raw_data = models.stddev_of_displacement(username=participant, timestamp_start=start, timestamp_end=end, value=value, ema_order=ema_order, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_NUM_OF_DIF_PLACES:
+                        start, end, value, ema_order = values.split(" ")
+                        new_raw_data = models.num_of_dif_places(username=participant, timestamp_start=start, timestamp_end=end, value=value, ema_order=ema_order, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_AUDIO_LOUDNESS:
+                        timestamp, value = values.split(" ")
+                        new_raw_data = models.audio_loudness(username=participant, timestamp=timestamp, value=value, day_num=get_day_num(float(timestamp), reg_time))
+                        new_raw_data.save()
+                    '''
+                    elif data_src == SRC_SP_STATIONARY_DUR:
+                        start, end, duration = values.split(" ")
+                        new_raw_data = models.stationary_dur(username=participant, timestamp_start=start, timestamp_end=end, duration=duration, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
+                    elif data_src == SRC_SP_APP_USAGE:
+                        timestamp, pkg_name, app_name, duration = values.split("||")
+                        new_raw_data = models.app_usage(username=participant, timestamp_start=timestamp, pkg_name=pkg_name, app_name=app_name, value=duration, day_num=get_day_num(float(timestamp), reg_time))
+                        new_raw_data.save()
+                    '''
             except Exception as ex:
-                print("io_string val: ", io_string)
-                pass
+                print("io_string val: ", io_string, "Ex: ", ex)
+                return JsonResponse({'result': RES_FAILURE})
             # endregion
 
             # region Setting amount of data loaded by user
@@ -140,3 +181,69 @@ def submit_api(request):
     except ValueError as e:
         print(e)
         return JsonResponse({'result': RES_BAD_REQUEST})
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def handle_usage_stats_submit(request):
+    try:
+        params = extract_post_params(request)
+        if 'username' not in params or 'password' not in params or 'app_usage' not in params:
+            raise ValueError('username/password/app_usage is not in request params')
+        if not is_user_valid(params['username'], params['password']):
+            return JsonResponse({'result': RES_FAILURE})
+        else:
+            username = params['username']
+            participant = Participant.objects.get(id=username)
+            for element in params['app_usage'].split(','):
+                package_name, last_time_used, total_time_in_foreground = [int(value) if value.isdigit() else value for value in element.split(' ')]
+                app_usage_stats.store_usage_changes(
+                    user=participant,
+                    package_name=package_name,
+                    end_timestamp=last_time_used,
+                    total_time_in_foreground=total_time_in_foreground
+                )
+            return JsonResponse(data={'result': RES_SUCCESS})
+    except ValueError as e:
+        print(e)
+        return JsonResponse({'result': RES_BAD_REQUEST})
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def submit_geofencing_api(request):
+    try:
+        params = extract_post_params(request)
+        if 'username' not in params or 'password' not in params or 'locations' not in params:
+            raise ValueError('username/password/locations is not in request params')
+        if not is_user_valid(params['username'], params['password']):
+            return JsonResponse({'result': RES_FAILURE})
+        else:
+            username = params['username']
+            participant = Participant.objects.get(id=username)
+            reg_time = participant.register_datetime
+            json_array_locations = params["locations"]
+            for item in json_array_locations:
+                location_id = item['id']
+                time_enter = item['timestamp_enter']
+                time_exit = item['timestamp_exit']
+
+                if time_enter == 0 or time_exit == 0:
+                    return JsonResponse({'result': RES_BAD_REQUEST, "message": "location enter/exit time is 0"})
+
+                new_location = models.geofencing(username=participant, timestamp_enter=time_enter, timestamp_exit=time_exit, location=location_id, day_num=get_day_num(time_exit, reg_time))
+                new_location.save()
+                print("{0}, {1}, {2}".format(location_id, time_enter, time_exit))
+
+            return JsonResponse(data={'result': RES_SUCCESS})
+    except ValueError as e:
+        print(e)
+        return JsonResponse({'result': RES_BAD_REQUEST})
+
+
+def get_day_num(new_timestamp, register_timestamp):
+    new_datetime = datetime.datetime.fromtimestamp(new_timestamp / 1000)
+    new_datetime_tmp = datetime.datetime(new_datetime.year, new_datetime.month, new_datetime.day)
+    reg_datetime = datetime.datetime.fromtimestamp(register_timestamp)
+    reg_datetime_tmp = datetime.datetime(reg_datetime.year, reg_datetime.month, reg_datetime.day)
+    return (new_datetime_tmp - reg_datetime_tmp).days + 1

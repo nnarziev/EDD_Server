@@ -2,23 +2,18 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
+
+from Tools import RES_SUCCESS, RES_BAD_REQUEST, is_user_valid
 from user.models import Participant
-from user.views import RES_SUCCESS, RES_BAD_REQUEST
 from . import models
 import datetime
 
+# region Constants
+EMA_HOURS = [10, 14, 18, 22]  # expected hours for ema responses
+NUMBER_OF_EMA = len(EMA_HOURS)
 
-# Create your views here.
-def user_exists(username):
-    return Participant.objects.filter(username=username).exists()
 
-
-def is_user_valid(username, password):
-    if user_exists(username):
-        participant = Participant.objects.get(username=username)
-        return participant.password == password
-    return False
-
+# endregion
 
 @csrf_exempt
 @require_http_methods(['POST'])
@@ -49,7 +44,7 @@ def submit_api(request):
         sleep_hour = json_body['sleep_hour']
         sleep_minute = json_body['sleep_minute']
 
-        participant = Participant.objects.get(username=username)
+        participant = Participant.objects.get(id=username)
 
         ema_datetime = datetime.datetime.fromtimestamp(ema_timestamp / 1000)
         ema_datetime_tmp = datetime.datetime(ema_datetime.year, ema_datetime.month, ema_datetime.day)
@@ -57,7 +52,7 @@ def submit_api(request):
         reg_datetime_tmp = datetime.datetime(reg_datetime.year, reg_datetime.month, reg_datetime.day)
         current_day_num = (ema_datetime_tmp - reg_datetime_tmp).days + 1
 
-        current_ema_row = models.Response.objects.all().get(username__username=username, day_num=current_day_num, ema_order=ema_order)
+        current_ema_row = models.Response.objects.all().get(username__id=username, day_num=current_day_num, ema_order=ema_order)
 
         current_ema_row.time_responded = ema_timestamp / 1000
         current_ema_row.mood = mood

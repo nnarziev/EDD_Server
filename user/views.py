@@ -2,31 +2,19 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-from Tools import extract_post_params
+from Tools import extract_post_params, RES_FAILURE, RES_SUCCESS, RES_BAD_REQUEST, user_exists, is_user_valid
+from ema.views import EMA_HOURS, NUMBER_OF_EMA
 from user.models import Participant
 from ema.models import Response
+
 from . import models
 import datetime
 
 # region Constants
-RES_SUCCESS = 0
-RES_FAILURE = 1
-RES_BAD_REQUEST = -1
+EXPERIMENT_DURATION = 65  # in days
 
 
 # endregion
-
-
-# Create your views here.
-def user_exists(username):
-    return models.Participant.objects.filter(username=username).exists()
-
-
-def is_user_valid(username, password):
-    if user_exists(username):
-        user = models.Participant.objects.get(username=username)
-        return user.password == password
-    return False
 
 
 @csrf_exempt
@@ -50,7 +38,7 @@ def register_api(request):
                 })
             else:
                 # create a new participant
-                new_participant = models.Participant(username=username,
+                new_participant = models.Participant(id=username,
                                                      phone_num=phone,
                                                      device_info=device_info,
                                                      password=password,
@@ -59,18 +47,16 @@ def register_api(request):
                                                      heartbeat_smartphone=now_date.timestamp())
                 new_participant.save()
 
-                ema_hours = [7, 10, 13, 16, 19, 22] # expected hours for ema responses
-
                 # create EMA entries for this user
-                for day in range(1, 32):
-                    for order in range(1, 7):
-                        now_date = now_date.replace(hour=ema_hours[order-1], minute=0, second=0, microsecond=0)
+                for day in range(1, EXPERIMENT_DURATION + 1):
+                    for order in range(1, NUMBER_OF_EMA + 1):
+                        now_date = now_date.replace(hour=EMA_HOURS[order - 1], minute=0, second=0, microsecond=0)
                         ema_user_data = Response(username=new_participant, day_num=day, ema_order=order, time_expected=now_date.timestamp())
                         ema_user_data.save()
                     now_date = now_date + datetime.timedelta(days=1)
 
                 return JsonResponse(data={'result': RES_SUCCESS})
-    except ValueError as e:
+    except Exception or ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'either username or phone number or password was not passed as a POST argument!'})
 
@@ -86,7 +72,7 @@ def login_api(request):
             print('-------------- Sign In -------------')
             print("User: ", username, "\tPassword: ", password)
             if is_user_valid(username, password):
-                participant = Participant.objects.get(username=username)
+                participant = Participant.objects.get(id=username)
                 participant.last_login_datetime = datetime.datetime.now().timestamp()
                 participant.save()
                 return JsonResponse(data={'result': RES_SUCCESS})
@@ -94,7 +80,7 @@ def login_api(request):
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'wrong credentials passed'
                 })
-    except ValueError as e:
+    except Exception or ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'Username or Password was not passed as a POST argument!'})
 
@@ -108,7 +94,7 @@ def heartbeat_smartphone_api(request):
             username = params['username']
             password = params['password']
             if is_user_valid(username, password):
-                participant = Participant.objects.get(username=username)
+                participant = Participant.objects.get(id=username)
                 participant.heartbeat_smartphone = datetime.datetime.now().timestamp()
                 participant.save()
                 return JsonResponse(data={'result': RES_SUCCESS})
@@ -130,7 +116,7 @@ def heartbeat_smartwatch_api(request):
             username = params['username']
             password = params['password']
             if is_user_valid(username, password):
-                participant = Participant.objects.get(username=username)
+                participant = Participant.objects.get(id=username)
                 participant.heartbeat_smartwatch = datetime.datetime.now().timestamp()
                 participant.save()
                 return JsonResponse(data={'result': RES_SUCCESS})
@@ -152,8 +138,7 @@ def get_user_stat_api(request):
             username = params['username']
             password = params['password']
             if is_user_valid(username, password):
-                participant_obj = Participant.objects.get(username=username)
-
+                participant_obj = Participant.objects.get(id=username)
                 # User stats variables
                 current_day_num = participant_obj.current_day_num()
                 ema_counter = 0  # num of responded emas for that day

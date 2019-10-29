@@ -1,5 +1,4 @@
-from Tools import extract_post_params
-from user.views import RES_SUCCESS, RES_BAD_REQUEST, RES_FAILURE
+from Tools import extract_post_params, RES_FAILURE, RES_SUCCESS, RES_BAD_REQUEST
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -8,16 +7,7 @@ from ema.models import Response
 import json
 import subprocess
 
-
-def user_exists(username):
-    return Participant.objects.filter(username=username).exists()
-
-
-def is_user_valid(username, password):
-    if user_exists(username):
-        participant = Participant.objects.get(username=username)
-        return participant.password == password
-    return False
+from user.views import is_user_valid
 
 
 @csrf_exempt
@@ -27,7 +17,7 @@ def fetch_mood_data(request):
     json_body = json.loads(req_body)
     if 'username' in json_body and 'password' and is_user_valid(json_body['username'], json_body['password']):
         username = json_body['username']
-        participant = Participant.objects.get(username=username)
+        participant = Participant.objects.get(id=username)
         current_day_num = participant.current_day_num()
         ema_responses = Response.objects.filter(username=participant, day_num=current_day_num).order_by('time_expected')
         data = []

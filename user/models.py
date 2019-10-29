@@ -10,7 +10,8 @@ class DeltaTemplate(Template):
 
 
 class Participant(models.Model):
-    username = models.CharField(max_length=25, primary_key=True)
+    id = models.CharField(max_length=25, primary_key=True)
+    email = models.CharField(max_length=25, default="")
     phone_num = models.CharField(default="", max_length=16)
     device_info = models.TextField(blank=True, default="")
     password = models.CharField(max_length=16)
@@ -23,7 +24,6 @@ class Participant(models.Model):
     last_ds_smartphone = models.BigIntegerField(default=datetime.datetime.now().timestamp())
     last_ds_smartwatch = models.BigIntegerField(default=datetime.datetime.now().timestamp())
     type = models.CharField(default="", max_length=10)
-
 
     def heartbeat_smartwatch_diff(self):
         time_dif = (datetime.datetime.now() - datetime.datetime.fromtimestamp(self.heartbeat_smartwatch))
