@@ -24,25 +24,13 @@ def submit_api(request):
             'password' in json_body and \
             'ema_timestamp' in json_body and \
             'ema_order' in json_body and \
-            'mood' in json_body and \
-            'food' in json_body and \
-            'physical_activity' in json_body and \
-            'social_activity' in json_body and \
-            'stress' in json_body and \
-            'sleep_hour' in json_body and \
-            'sleep_minute' in json_body and \
+            'answers' in json_body and \
             is_user_valid(json_body['username'], json_body['password']):
 
         username = json_body['username']
         ema_timestamp = json_body['ema_timestamp']
         ema_order = json_body['ema_order']
-        mood = json_body['mood']
-        food = json_body['food']
-        physical_activity = json_body['physical_activity']
-        social_activity = json_body['social_activity']
-        stress = json_body['stress']
-        sleep_hour = json_body['sleep_hour']
-        sleep_minute = json_body['sleep_minute']
+        interest, mood, sleep, fatigue, weight, worthlessness, concentrate, restlessness, suicide = json_body['answers'].split(" ")
 
         participant = Participant.objects.get(id=username)
 
@@ -55,13 +43,16 @@ def submit_api(request):
         current_ema_row = models.Response.objects.all().get(username__id=username, day_num=current_day_num, ema_order=ema_order)
 
         current_ema_row.time_responded = ema_timestamp / 1000
+
+        current_ema_row.interest = interest
         current_ema_row.mood = mood
-        current_ema_row.food = food
-        current_ema_row.physical_activity = physical_activity
-        current_ema_row.social_activity = social_activity
-        current_ema_row.stress = stress
-        current_ema_row.sleep_hour = sleep_hour
-        current_ema_row.sleep_minute = sleep_minute
+        current_ema_row.sleep = sleep
+        current_ema_row.fatigue = fatigue
+        current_ema_row.weight = weight
+        current_ema_row.worthlessness = worthlessness
+        current_ema_row.concentrate = concentrate
+        current_ema_row.restlessness = restlessness
+        current_ema_row.suicide = suicide
 
         current_ema_row.save()
 
