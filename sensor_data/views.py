@@ -1,3 +1,5 @@
+import os
+
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -60,18 +62,27 @@ def submit_api(request):
             username = params['username']
             participant = Participant.objects.get(id=username)
             reg_time = participant.register_datetime
+
             csv_file = request.FILES['file']
             device_name = csv_file.name.split('_')[0]
-
-            data_set = csv_file.read().decode('UTF-8')
-
-            # region Processing the received data
+            data_set = csv_file.read().decode('ascii')
             io_string = io.StringIO(data_set)
+
             print(username, ";\tsize: ", len(data_set) / 1024)
+
+            data_src_tmp = ''
+            line_num_tmp = 0
             try:
-                for column in csv.reader(io_string, delimiter=',', quotechar="|"):
+                # region Processing the received data
+
+                file_read = csv.reader(io_string, delimiter=',', quotechar="|")
+
+                for idx, column in enumerate(file_read):
                     data_src = column[0]
                     values = column[1]
+
+                    data_src_tmp = data_src
+                    line_num_tmp = idx
 
                     if data_src == SRC_SP_ACC:
                         timestamp, val_x, val_y, val_z = values.split(" ")
@@ -151,31 +162,32 @@ def submit_api(request):
                         new_raw_data = models.app_usage(username=participant, timestamp_start=timestamp, pkg_name=pkg_name, app_name=app_name, value=duration, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
                     '''
+                # endregion
+
+                # region Setting amount of data loaded by user
+                cur_datetime = datetime.datetime.now()
+                last_ds_phone = datetime.datetime.fromtimestamp(participant.last_ds_smartphone)
+                last_ds_watch = datetime.datetime.fromtimestamp(participant.last_ds_smartwatch)
+
+                if device_name == DEVICE_TYPE_PHONE:
+                    if cur_datetime.day == last_ds_phone.day:
+                        participant.daily_data_size_smartphone = participant.daily_data_size_smartphone + (len(data_set) / 1024)
+                    else:
+                        participant.daily_data_size_smartphone = len(data_set) / 1024
+                    participant.last_ds_smartphone = cur_datetime.timestamp()
+                elif device_name == DEVICE_TYPE_WATCH:
+                    if cur_datetime.day == last_ds_watch.day:
+                        participant.daily_data_size_smartwatch = participant.daily_data_size_smartwatch + (len(data_set) / 1024)
+                    else:
+                        participant.daily_data_size_smartwatch = len(data_set) / 1024
+                    participant.last_ds_smartwatch = cur_datetime.timestamp()
+
+                participant.save()
+                # endregion
             except Exception as ex:
-                print("io_string val: ", io_string, "Ex: ", ex)
+                print("Ex: ", ex)
+                print("filename: ", csv_file.name, data_src_tmp, line_num_tmp)
                 return JsonResponse({'result': RES_FAILURE})
-            # endregion
-
-            # region Setting amount of data loaded by user
-            cur_datetime = datetime.datetime.now()
-            last_ds_phone = datetime.datetime.fromtimestamp(participant.last_ds_smartphone)
-            last_ds_watch = datetime.datetime.fromtimestamp(participant.last_ds_smartwatch)
-
-            if device_name == DEVICE_TYPE_PHONE:
-                if cur_datetime.day == last_ds_phone.day:
-                    participant.daily_data_size_smartphone = participant.daily_data_size_smartphone + (len(data_set) / 1024)
-                else:
-                    participant.daily_data_size_smartphone = len(data_set) / 1024
-                participant.last_ds_smartphone = cur_datetime.timestamp()
-            elif device_name == DEVICE_TYPE_WATCH:
-                if cur_datetime.day == last_ds_watch.day:
-                    participant.daily_data_size_smartwatch = participant.daily_data_size_smartwatch + (len(data_set) / 1024)
-                else:
-                    participant.daily_data_size_smartwatch = len(data_set) / 1024
-                participant.last_ds_smartwatch = cur_datetime.timestamp()
-
-            participant.save()
-            # endregion
 
             return JsonResponse(data={'result': RES_SUCCESS})
     except ValueError as e:

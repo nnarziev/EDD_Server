@@ -130,9 +130,10 @@ class radius_of_gyration(models.Model):
 
 class stddev_of_displacement(models.Model):
     username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
-    timestamp = models.BigIntegerField(default=0)
-    activity_type = models.CharField(max_length=10, default="")
-    confidence = models.FloatField(default=0.0)
+    timestamp_start = models.BigIntegerField(default=0)
+    timestamp_end = models.BigIntegerField(default=0)
+    value = models.FloatField(default=0.0)
+    ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
 
 
@@ -209,13 +210,7 @@ class app_usage_stats(models.Model):
             last_usage = app_usage_stats.objects.filter(username=user, package_name=package_name).order_by('-end_timestamp')[0]
             start_timestamp = end_timestamp - (total_time_in_foreground - last_usage.total_time_in_foreground)
             if start_timestamp == end_timestamp:
-                print('Zero length app usage ignored: user={0}, package={1}, start_timestamp={2}, end_timestamp={3}, total_time_in_foreground={4}'.format(
-                    user,
-                    package_name,
-                    start_timestamp,
-                    end_timestamp,
-                    total_time_in_foreground
-                ))
+                # print('Zero length app usage ignored: user={0}, package={1}, start_timestamp={2}, end_timestamp={3}, total_time_in_foreground={4}'.format(user,package_name,start_timestamp,end_timestamp,total_time_in_foreground))
                 return None
             elif start_timestamp == last_usage.end_timestamp:
                 last_usage.total_time_in_foreground = total_time_in_foreground
