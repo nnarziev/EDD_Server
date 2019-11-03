@@ -10,6 +10,7 @@ class acc_sp(models.Model):
     value_y = models.FloatField(default=0)
     value_z = models.FloatField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class acc_sw(models.Model):
@@ -20,18 +21,21 @@ class acc_sw(models.Model):
     value_z = models.FloatField(default=0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class step_detector(models.Model):
     username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
     timestamp = models.BigIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class significant_motion(models.Model):
     username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
     timestamp = models.BigIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class unlocked_dur(models.Model):
@@ -40,6 +44,7 @@ class unlocked_dur(models.Model):
     timestamp_end = models.BigIntegerField(default=0)
     duration = models.IntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class phone_calls(models.Model):
@@ -49,6 +54,7 @@ class phone_calls(models.Model):
     call_type = models.TextField(blank=True, default="")
     duration = models.IntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class light_intensity(models.Model):
@@ -56,6 +62,7 @@ class light_intensity(models.Model):
     timestamp = models.BigIntegerField(default=0)
     value = models.FloatField(default=0.0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class hrm(models.Model):
@@ -64,6 +71,7 @@ class hrm(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class geofencing(models.Model):
@@ -72,6 +80,7 @@ class geofencing(models.Model):
     timestamp_exit = models.BigIntegerField(default=0)
     location = models.CharField(max_length=10, default="")
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class gps_locations(models.Model):
@@ -82,6 +91,7 @@ class gps_locations(models.Model):
     accuracy = models.FloatField(default=0.0)
     altitude = models.FloatField(default=0.0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class activities(models.Model):
@@ -90,6 +100,7 @@ class activities(models.Model):
     activity_type = models.CharField(max_length=10, default="")
     confidence = models.FloatField(default=0.0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class total_dist_covered(models.Model):
@@ -99,6 +110,7 @@ class total_dist_covered(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class max_dist_from_home(models.Model):
@@ -108,6 +120,7 @@ class max_dist_from_home(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class max_dist_two_locations(models.Model):
@@ -117,6 +130,7 @@ class max_dist_two_locations(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class radius_of_gyration(models.Model):
@@ -126,6 +140,7 @@ class radius_of_gyration(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class stddev_of_displacement(models.Model):
@@ -135,6 +150,7 @@ class stddev_of_displacement(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class num_of_dif_places(models.Model):
@@ -144,6 +160,7 @@ class num_of_dif_places(models.Model):
     value = models.FloatField(default=0.0)
     ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class audio_loudness(models.Model):
@@ -151,6 +168,7 @@ class audio_loudness(models.Model):
     timestamp = models.BigIntegerField(default=0)
     value = models.FloatField(default=0.0)
     day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
 
 
 class app_usage_stats(models.Model):
@@ -162,6 +180,7 @@ class app_usage_stats(models.Model):
     start_timestamp = models.BigIntegerField()
     end_timestamp = models.BigIntegerField()
     total_time_in_foreground = models.IntegerField()
+    lof_value = models.FloatField(default=-1)
 
     @staticmethod
     def get_overlapping_elements(user, package_name, from_timestamp, till_timestamp):

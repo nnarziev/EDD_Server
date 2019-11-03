@@ -18,3 +18,4 @@ class Response(models.Model):
     suicide = models.SmallIntegerField(default=-1)
     time_expected = models.BigIntegerField(default=0)
     time_responded = models.BigIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
