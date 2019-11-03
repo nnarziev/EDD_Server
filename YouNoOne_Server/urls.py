@@ -22,8 +22,8 @@ if not os.path.exists('audio/'):
     os.mkdir('audio')
     print('directory "audio/" has been created')
 
-
 urlpatterns = [
+    re_path(r'mdd/', include('mdd.urls')),
     re_path(r'user/', include('user.urls')),
     re_path(r'ema/', include('ema.urls')),
     re_path(r'sensor_data/', include('sensor_data.urls')),
