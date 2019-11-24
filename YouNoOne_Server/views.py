@@ -12,24 +12,6 @@ from user.views import is_user_valid
 
 @csrf_exempt
 @require_http_methods(['POST'])
-def fetch_mood_data(request):
-    req_body = request.body.decode('utf-8')
-    json_body = json.loads(req_body)
-    if 'username' in json_body and 'password' and is_user_valid(json_body['username'], json_body['password']):
-        username = json_body['username']
-        participant = Participant.objects.get(id=username)
-        current_day_num = participant.current_day_num()
-        ema_responses = Response.objects.filter(username=participant, day_num=current_day_num).order_by('time_expected')
-        data = []
-        for ema in ema_responses:
-            data += [ema.mood]
-        return JsonResponse(data={'result': RES_SUCCESS, 'data': data})
-    else:
-        return JsonResponse(data={'result': RES_BAD_REQUEST})
-
-
-@csrf_exempt
-@require_http_methods(['POST'])
 def submit_audio(request):
     try:
         params = extract_post_params(request)

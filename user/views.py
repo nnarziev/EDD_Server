@@ -25,6 +25,7 @@ def register_api(request):
         if 'username' in params and 'password' in params and 'phone_num' in params and 'device_info' in params:
             username = params['username']
             phone = params['phone_num']
+            name = params['name']
             device_info = params['device_info']
             password = params['password']
             print('-------------- Sign Up -------------')
@@ -40,6 +41,7 @@ def register_api(request):
                 # create a new participant
                 new_participant = models.Participant(id=username,
                                                      phone_num=phone,
+                                                     name=name,
                                                      device_info=device_info,
                                                      password=password,
                                                      register_datetime=now_date.timestamp(),
@@ -56,6 +58,8 @@ def register_api(request):
                     now_date = now_date + datetime.timedelta(days=1)
 
                 return JsonResponse(data={'result': RES_SUCCESS})
+        else:
+            return JsonResponse(data={'result': RES_BAD_REQUEST})
     except Exception or ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'either username or phone number or password was not passed as a POST argument!'})
@@ -80,6 +84,8 @@ def login_api(request):
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'wrong credentials passed'
                 })
+        else:
+            return JsonResponse(data={'result': RES_BAD_REQUEST})
     except Exception or ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'Username or Password was not passed as a POST argument!'})
@@ -94,6 +100,7 @@ def heartbeat_smartphone_api(request):
             username = params['username']
             password = params['password']
             if is_user_valid(username, password):
+                print("Heartbeat phone: ", username)
                 participant = Participant.objects.get(id=username)
                 participant.heartbeat_smartphone = datetime.datetime.now().timestamp()
                 participant.save()
@@ -102,6 +109,8 @@ def heartbeat_smartphone_api(request):
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'wrong credentials passed'
                 })
+        else:
+            return JsonResponse(data={'result': RES_BAD_REQUEST})
     except ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'Username or Password was not passed as a POST argument!'})
@@ -116,6 +125,7 @@ def heartbeat_smartwatch_api(request):
             username = params['username']
             password = params['password']
             if is_user_valid(username, password):
+                print("Heartbeat watch: ", username)
                 participant = Participant.objects.get(id=username)
                 participant.heartbeat_smartwatch = datetime.datetime.now().timestamp()
                 participant.save()
@@ -124,6 +134,8 @@ def heartbeat_smartwatch_api(request):
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'wrong credentials passed'
                 })
+        else:
+            return JsonResponse(data={'result': RES_BAD_REQUEST})
     except ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'Username or Password was not passed as a POST argument!'})
@@ -138,33 +150,44 @@ def get_user_stat_api(request):
             username = params['username']
             password = params['password']
             if is_user_valid(username, password):
-                participant_obj = Participant.objects.get(id=username)
+                participant = Participant.objects.get(id=username)
                 # User stats variables
-                current_day_num = participant_obj.current_day_num()
+                current_day_num = participant.current_day_num()
                 ema_counter = 0  # num of responded emas for that day
-                last_hb_watch = participant_obj.heartbeat_smartwatch_diff_min()  # in minutes
-                last_hb_phone = participant_obj.heartbeat_smartphone_diff_min()  # in minutes
-                data_loaded_watch = participant_obj.watch_data_size()
-                data_loaded_phone = participant_obj.phone_data_size()
+                last_hb_watch = participant.heartbeat_smartwatch_diff_min()  # in minutes
+                last_hb_phone = participant.heartbeat_smartphone_diff_min()  # in minutes
+                data_loaded_watch = participant.watch_data_size()
+                data_loaded_phone = participant.phone_data_size()
 
                 # region Number of ema responses
-                ema_obj = Response.objects.filter(username=participant_obj, day_num=current_day_num)
+                # ema_obj = Response.objects.filter(username=participant_obj, day_num=current_day_num)
 
-                for ema in ema_obj:
+                ema_responses = Response.objects.filter(username=participant, day_num=current_day_num).order_by('time_expected')
+                ema_resp = []
+                mood_data = []
+                for ema in ema_responses:
                     if ema.time_responded != 0:
+                        ema_resp += ['1']
+                        mood_data += [ema.mood]
                         ema_counter += 1
+                    else:
+                        ema_resp += ['0']
 
                 return JsonResponse(data={'result': RES_SUCCESS,
                                           'day_number': current_day_num,
                                           'ema_responses_number': ema_counter,
+                                          'ema_responses': ema_resp,
                                           'heartbeat_watch': last_hb_watch,
                                           'heartbeat_phone': last_hb_phone,
                                           'data_loaded_watch': data_loaded_watch,
-                                          'data_loaded_phone': data_loaded_phone})
+                                          'data_loaded_phone': data_loaded_phone,
+                                          'mood_data': mood_data})
             else:
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'wrong credentials passed'
                 })
+        else:
+            return JsonResponse(data={'result': RES_BAD_REQUEST})
     except ValueError as e:
         print(str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'Username or Password was not passed as a POST argument!'})

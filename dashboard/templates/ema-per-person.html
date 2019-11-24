@@ -69,13 +69,15 @@
         <th>Day no.</th>
         <!--<th>Username</th>-->
         <th>EMA order</th>
+        <th>interest</th>
         <th>mood</th>
-        <th>sleep h.</th>
-        <th>sleep m.</th>
-        <th>food</th>
-        <th>phys. act.</th>
-        <th>soc. act.</th>
-        <th>stress</th>
+        <th>sleep</th>
+        <th>fatigue</th>
+        <th>weight</th>
+        <th>worthlessness</th>
+        <th>concentrate</th>
+        <th>restlessness</th>
+        <th>suicide</th>
         <th>expected time</th>
         <th>responded time</th>
     </tr>
@@ -88,22 +90,34 @@
                 {{ ema.ema_order }}
             </td>
             <td>
+                {% if ema.interest == -1 %}none{% else %}{{ ema.interest }}{% endif %}
+            </td>
+            <td>
                 {% if ema.mood == -1 %}none{% else %}{{ ema.mood }}{% endif %}
             </td>
             <td>
-                {% if ema.sleep_hour == -1 %}none{% else %}{{ ema.sleep_hour }}{% endif %}
+                {% if ema.sleep == -1 %}none{% else %}{{ ema.sleep }}{% endif %}
             </td>
             <td>
-                {% if ema.sleep_minute == -1 %}none{% else %}{{ ema.sleep_minute }}{% endif %}
+                {% if ema.fatigue == -1 %}none{% else %}{{ ema.fatigue }}{% endif %}
             </td>
             <td>
-                {% if ema.food == -1 %}none{% else %}{{ ema.food}}{% endif %}
+                {% if ema.weight == -1 %}none{% else %}{{ ema.weight }}{% endif %}
             </td>
-            <td>{% if ema.physical_activity == -1 %}none{% else %}{{ ema.physical_activity}}{% endif %}</td>
-            <td>{% if ema.social_activity == -1 %}none{% else %}{{ ema.social_activity }}{% endif %}</td>
-            <td>{% if ema.stress == -1 %}none{% else %}{{ ema.stress}}{% endif %}</td>
+            <td>
+                {% if ema.worthlessness == -1 %}none{% else %}{{ ema.worthlessness }}{% endif %}
+            </td>
+            <td>
+                {% if ema.concentrate == -1 %}none{% else %}{{ ema.concentrate }}{% endif %}
+            </td>
+            <td>
+                {% if ema.restlessness == -1 %}none{% else %}{{ ema.restlessness }}{% endif %}
+            </td>
+            <td>
+                {% if ema.suicide == -1 %}none{% else %}{{ ema.suicide }}{% endif %}
+            </td>
             <td>{{ ema.time_expected }}</td>
-            <td>{% if ema.time_responded == 0 %}none{% else %}{{ ema.time_responded}}{% endif %}</td>
+            <td>{% if ema.time_responded == 0 %}none{% else %}{{ ema.time_responded }}{% endif %}</td>
         </tr>
     {% endfor %}
 

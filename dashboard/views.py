@@ -45,7 +45,7 @@ def extract_data(request, exportCSV):
                     try:
                         # TODO: revisit all ifs and fix them
                         response = HttpResponse(content_type='text/csv')
-                        if data_src == sensor_views.SRC_SP_ACC:
+                        if data_src == sensor_views.SRC_ACC_SP:
                             new_raw_data = models.acc.objects.filter(username=participant).order_by('timestamp')
                             response = HttpResponse(content_type='text/csv')
                             response['Content-Disposition'] = 'attachment;filename=%s(acc).csv' % username
@@ -149,6 +149,7 @@ def extract_data(request, exportCSV):
                         pass
             else:
                 return JsonResponse(data={'result': 'Please, put correct username and source number'})
+
 
         except ValueError as e:
             print(str(e))

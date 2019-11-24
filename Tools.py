@@ -5,7 +5,6 @@ RES_SUCCESS = 0
 RES_FAILURE = 1
 RES_BAD_REQUEST = -1
 
-
 def user_exists(username):
     return models.Participant.objects.filter(id=username).exists()
 

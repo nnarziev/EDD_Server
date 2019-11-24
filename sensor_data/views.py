@@ -1,5 +1,3 @@
-import os
-
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -7,7 +5,7 @@ import datetime
 
 from Tools import extract_post_params, RES_FAILURE, RES_SUCCESS, RES_BAD_REQUEST, is_user_valid
 from sensor_data.models import app_usage_stats
-from user.models import Participant
+from user.models import Participant, ReceivedFilenames
 import io
 import csv
 
@@ -17,7 +15,7 @@ from . import models
 DEVICE_TYPE_WATCH = "sw"
 DEVICE_TYPE_PHONE = "sp"
 
-SRC_SP_ACC = "1"
+SRC_ACC_SP = "1"
 SRC_SP_STATIONARY_DUR = "2"
 SRC_SP_SIGNIFICANT_MOTION = "3"
 SRC_SP_STEP_DETECTOR = "4"
@@ -35,18 +33,17 @@ SRC_SP_STDDEV_OF_DISPLACEMENT = "15"
 SRC_SP_NUM_OF_DIF_PLACES = "16"
 SRC_SP_AUDIO_LOUDNESS = "17"
 
-SRC_SW_HRM = "50"
-SRC_SW_ACC = "51"
+SRC_HRM_SW = "50"
+SRC_ACC_SW = "51"
 
 LOCATION_HOME = "HOME"
 LOCATION_DORM = "DORM"
 LOCATION_UNIV = "UNIV"
 LOCATION_LIBRARY = "LIBRARY"
-LOCATION_STUDY = "STUDY"
+LOCATION_ADDITIONAL = "ADDITIONAL"
 
 
 # endregion
-
 
 @csrf_exempt
 @require_http_methods(['POST'])
@@ -57,6 +54,7 @@ def submit_api(request):
         if 'username' not in params or 'password' not in params or 'file' not in request.FILES:
             raise ValueError('username/password/file is not in request params')
         if not is_user_valid(params['username'], params['password']):
+            print("Response RES_FAILURE")
             return JsonResponse({'result': RES_FAILURE})
         else:
             username = params['username']
@@ -68,7 +66,18 @@ def submit_api(request):
             data_set = csv_file.read().decode('ascii')
             io_string = io.StringIO(data_set)
 
-            print(username, ";\tsize: ", len(data_set) / 1024)
+            print("File received", username, ";\tsize: ", len(data_set) / 1024, ";\tfilename: ", csv_file.name)
+
+            if len(data_set) == 0:
+                print("File length is 0")
+                return JsonResponse(data={'result': RES_SUCCESS})
+
+            new_filename, created = ReceivedFilenames.objects.get_or_create(username=participant, filename=csv_file.name)
+            if created:
+                new_filename.save()
+            else:
+                print("Duplicate file", new_filename.username.id, ";\tfilename: ", new_filename.filename)
+                return JsonResponse(data={'result': RES_SUCCESS})
 
             data_src_tmp = ''
             line_num_tmp = 0
@@ -84,11 +93,19 @@ def submit_api(request):
                     data_src_tmp = data_src
                     line_num_tmp = idx
 
-                    if data_src == SRC_SP_ACC:
-                        timestamp, val_x, val_y, val_z = values.split(" ")
-                        new_raw_data = models.acc_sp(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, day_num=get_day_num(float(timestamp), reg_time))
+                    if data_src == SRC_ACC_SP:
+                        # new_raw_data = models.acc_sp(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, ema_order=ema_order, day_num=get_day_num(float(timestamp), reg_time))
+                        elems = values.split(" ")
+                        ema_order = 0
+                        if len(elems) == 4:
+                            # old version
+                            timestamp, val_x, val_y, val_z = elems
+                            pass
+                        else:
+                            timestamp, val_x, val_y, val_z, ema_order = elems
+                        new_raw_data = models.acc_sp(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, ema_order=ema_order, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == SRC_SW_ACC:
+                    elif data_src == SRC_ACC_SW:
                         timestamp, val_x, val_y, val_z, ema_order = values.split(" ")
                         new_raw_data = models.acc_sw(username=participant, timestamp=timestamp, value_x=val_x, value_y=val_y, value_z=val_z, ema_order=ema_order, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
@@ -112,7 +129,7 @@ def submit_api(request):
                         timestamp, value = values.split(" ")
                         new_raw_data = models.light_intensity(username=participant, timestamp=timestamp, value=value, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
-                    elif data_src == SRC_SW_HRM:
+                    elif data_src == SRC_HRM_SW:
                         timestamp, value, ema_order = values.split(" ")
                         new_raw_data = models.hrm(username=participant, timestamp=timestamp, value=value, ema_order=ema_order, day_num=get_day_num(float(timestamp), reg_time))
                         new_raw_data.save()
@@ -187,11 +204,14 @@ def submit_api(request):
             except Exception as ex:
                 print("Ex: ", ex)
                 print("filename: ", csv_file.name, data_src_tmp, line_num_tmp)
+                print("Response RES_FAILURE", username, ";\tsize: ", len(data_set) / 1024, ";\tfilename: ", csv_file.name)
                 return JsonResponse({'result': RES_FAILURE})
 
+            print("Response RES_SUCCESS", username, ";\tsize: ", len(data_set) / 1024, ";\tfilename: ", csv_file.name)
             return JsonResponse(data={'result': RES_SUCCESS})
     except ValueError as e:
         print(e)
+        print("Response RES_BAD_REQUEST")
         return JsonResponse({'result': RES_BAD_REQUEST})
 
 

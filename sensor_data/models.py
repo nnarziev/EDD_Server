@@ -9,6 +9,7 @@ class acc_sp(models.Model):
     value_x = models.FloatField(default=0)
     value_y = models.FloatField(default=0)
     value_z = models.FloatField(default=0)
+    ema_order = models.SmallIntegerField(default=0)
     day_num = models.SmallIntegerField(default=0)
     lof_value = models.FloatField(default=-1)
 
@@ -236,13 +237,13 @@ class app_usage_stats(models.Model):
                 last_usage.end_timestamp = end_timestamp
                 last_usage.save()
             if app_usage_stats.objects.filter(username=user, start_timestamp=start_timestamp).exists():
-                print('Duplicate app usage ignored: user={0}, package_name={1}, start_timestamp={2}, end_timestamp={3}, total_time_in_foreground={4}'.format(
+                '''print('Duplicate app usage ignored: user={0}, package_name={1}, start_timestamp={2}, end_timestamp={3}, total_time_in_foreground={4}'.format(
                     user,
                     package_name,
                     start_timestamp,
                     end_timestamp,
                     total_time_in_foreground
-                ))
+                ))'''
                 return None
             else:
                 overlapping_elements = app_usage_stats.get_overlapping_elements(user, package_name, start_timestamp, end_timestamp)

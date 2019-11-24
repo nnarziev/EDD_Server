@@ -1,6 +1,7 @@
 from django.db import models
 import datetime
 from string import Template
+from django.db.models.deletion import CASCADE
 
 
 # Create your models here.
@@ -12,6 +13,7 @@ class DeltaTemplate(Template):
 class Participant(models.Model):
     id = models.CharField(max_length=25, primary_key=True)
     email = models.CharField(max_length=25, default="")
+    name = models.CharField(max_length=25, default="")
     phone_num = models.CharField(default="", max_length=16)
     device_info = models.TextField(blank=True, default="")
     password = models.CharField(max_length=16)
@@ -67,9 +69,16 @@ class Participant(models.Model):
     def phone_data_size(self):
         return "{0:.2f}".format(round(self.daily_data_size_smartphone / 1024, 2))
 
+    '''
     def strfdelta(tdelta, fmt):
         d = {"D": tdelta.days}
         d["H"], rem = divmod(tdelta.seconds, 3600)
         d["M"], d["S"] = divmod(rem, 60)
         t = DeltaTemplate(fmt)
         return t.substitute(**d)
+    '''
+
+
+class ReceivedFilenames(models.Model):
+    username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
+    filename = models.CharField(max_length=22)
