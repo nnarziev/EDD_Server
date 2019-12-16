@@ -48,6 +48,15 @@ class unlocked_dur(models.Model):
     lof_value = models.FloatField(default=-1)
 
 
+class stationary_dur(models.Model):
+    username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
+    timestamp_start = models.BigIntegerField(default=0)
+    timestamp_end = models.BigIntegerField(default=0)
+    duration = models.IntegerField(default=0)
+    day_num = models.SmallIntegerField(default=0)
+    lof_value = models.FloatField(default=-1)
+
+
 class phone_calls(models.Model):
     username = models.ForeignKey('user.Participant', on_delete=CASCADE, default="")
     timestamp_start = models.BigIntegerField(default=0)

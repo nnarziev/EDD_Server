@@ -121,6 +121,10 @@ def submit_api(request):
                         start, end, duration = values.split(" ")
                         new_raw_data = models.unlocked_dur(username=participant, timestamp_start=start, timestamp_end=end, duration=duration, day_num=get_day_num(float(end), reg_time))
                         new_raw_data.save()
+                    elif data_src == SRC_SP_STATIONARY_DUR:
+                        start, end, duration = values.split(" ")
+                        new_raw_data = models.stationary_dur(username=participant, timestamp_start=start, timestamp_end=end, duration=duration, day_num=get_day_num(float(end), reg_time))
+                        new_raw_data.save()
                     elif data_src == SRC_SP_PHONE_CALLS:
                         start, end, call_type, duration = values.split(" ")
                         new_raw_data = models.phone_calls(username=participant, timestamp_start=start, timestamp_end=end, call_type=call_type, duration=duration, day_num=get_day_num(float(end), reg_time))
