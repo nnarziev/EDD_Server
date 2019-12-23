@@ -22,14 +22,6 @@ def index(request):
     return render(request=request, template_name='index.html', context=context)
 
 
-def ema(request):
-    ema_responses = Response.objects.order_by('day_num')[:1000]
-    context = {
-        'ema_responses': ema_responses
-    }
-    return render(request=request, template_name='ema.html', context=context)
-
-
 @csrf_exempt
 def extract_data(request, exportCSV):
     if exportCSV:

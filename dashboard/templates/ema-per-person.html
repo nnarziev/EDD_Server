@@ -37,6 +37,13 @@
             background: #f3f6f7;
         }
 
+        #username_text {
+            display: block;
+            margin-bottom: 10px;
+            color: #ff0000;
+            text-align: center;
+        }
+
         table td {
             width: 350px;
             padding: 10px;
@@ -49,25 +56,14 @@
 </head>
 <body>
 
-<h1 style="margin-bottom: 10px">
-    <center>YOU-NO-ONE DASHBOARD</center>
-</h1>
+<h1 style="display: block; margin-bottom: 10px; text-align: center"> YOU-NO-ONE DASHBOARD </h1>
+<h2 style="display: block; margin-bottom: 10px; text-align: center">EMA PAGE</h2>
 
-<center style="margin-bottom: 10px">
-    <h2>EMA PAGE</h2>
-</center>
-
-
-<center style="margin-bottom: 10px; color: #ff0000">
-    <h2>{{ username }}</h2>
-</center>
-
+<h2 id="username_text">{{ username }}</h2>
 <hr>
-
 <table>
     <tr id="table_header">
         <th>Day no.</th>
-        <!--<th>Username</th>-->
         <th>EMA order</th>
         <th>interest</th>
         <th>mood</th>
@@ -85,7 +81,6 @@
     {% for ema in ema_responses %}
         <tr id="table_body">
             <th>{{ ema.day_num }}</th>
-            <!--<td>{{ ema.username.username }}</td>-->
             <td>
                 {{ ema.ema_order }}
             </td>

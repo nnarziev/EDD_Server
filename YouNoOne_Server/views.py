@@ -2,9 +2,6 @@ from Tools import extract_post_params, RES_FAILURE, RES_SUCCESS, RES_BAD_REQUEST
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from user.models import Participant
-from ema.models import Response
-import json
 import subprocess
 
 from user.views import is_user_valid

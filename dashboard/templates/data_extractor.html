@@ -16,7 +16,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        .login-page {
+        .data_extraction-page {
             width: 560px;
             padding: 1% 0 0;
             margin: auto;
@@ -90,9 +90,9 @@
 <br>
 <br>
 
-<div class="login-page">
+<div class="data_extraction-page">
     <div class="form">
-        <form class="login-form" action="/dashboard/csv" method="post">
+        <form action="/dashboard/csv" method="post">
             {% csrf_token %}
             <table>
                 <tr>

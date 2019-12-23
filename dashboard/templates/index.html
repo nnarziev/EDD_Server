@@ -50,16 +50,9 @@
 <body>
 {% load staticfiles %}
 
-<h1 style="margin-bottom: 20px">
-    <center>YOU-NO-ONE DASHBOARD</center>
-</h1>
-
-<center style="margin-bottom: 50px">
-    <h2>MAIN PAGE</h2>
-</center>
-
+<h1 style="display:block; margin-bottom: 20px; text-align: center"> YOU-NO-ONE DASHBOARD </h1>
+<h2 style="display:block; margin-bottom: 20px; text-align: center"> MAIN PAGE </h2>
 <hr>
-
 <table>
     <tr id="table_header">
         <th>Username</th>
@@ -71,10 +64,11 @@
         <th>Phone no.</th>
         <th>Last data upload (phone)</th>
         <th>Last data upload (watch)</th>
+        <th>Device Info.</th>
     </tr>
 
     {% for participant in participants %}
-        <tr id="table_body" style="background:{% if participant.type == "exp" %} #fcf2ff {% elif participant.type == "first" %} #e8fff0 {% elif participant.type == "second" %} #f8ffe0 {% endif %};">
+        <tr id="table_body" style="background:{% if participant.type == "test" %} #fcf2ff {% elif participant.type == "first" %} #e8fff0 {% elif participant.type == "second" %} #f8ffe0 {% endif %};">
             <td><a href="/dashboard/{{ participant.id }}/">{{ participant.id }}</a></td>
             <td>{{ participant.current_day_num }}</td>
             <td>{{ participant.heartbeat_smartphone_diff }}</td>
@@ -84,6 +78,7 @@
             <td>{{ participant.phone_num }}</td>
             <td>{{ participant.last_ds_smartphone_diff }}</td>
             <td>{{ participant.last_ds_smartwatch_diff }}</td>
+            <td>{{ participant.device_info }}</td>
         </tr>
     {% endfor %}
 
