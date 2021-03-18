@@ -1,6 +1,6 @@
 absl-py==0.6.1
 astor==0.7.1
-Django==2.2.4
+Django==2.2.18
 ffmpeg==1.4
 gast==0.2.0
 grpcio==1.17.0
