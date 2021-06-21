@@ -39,6 +39,7 @@ def submit_api(request):
         reg_datetime = datetime.datetime.fromtimestamp(participant.register_datetime)
         reg_datetime_tmp = datetime.datetime(reg_datetime.year, reg_datetime.month, reg_datetime.day)
         current_day_num = (ema_datetime_tmp - reg_datetime_tmp).days + 1
+        
 
         current_ema_row = models.Response.objects.all().get(username__id=username, day_num=current_day_num, ema_order=ema_order)
 

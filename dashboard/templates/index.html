@@ -19,20 +19,23 @@
             line-height: 1.5;
             width: 100%;
         }
-
+        
         #table_header th {
             padding: 10px;
             font-weight: bold;
-            vertical-align: top;
             color: #369;
             border-bottom: 3px solid #036;
+            vertical-align: center;
+        }
+        
+        #border{
+          border-right: 0px solid #036;
         }
 
         #table_body th {
             width: 150px;
             padding: 10px;
             font-weight: bold;
-            vertical-align: top;
             border-bottom: 1px solid #ccc;
             background: #f3f6f7;
         }
@@ -40,7 +43,6 @@
         table td {
             width: 350px;
             padding: 10px;
-            vertical-align: top;
             border-bottom: 1px solid #ccc;
             overflow: hidden;
         }
@@ -55,31 +57,50 @@
 <hr>
 <table>
     <tr id="table_header">
-        <th>Username</th>
-        <th>Current day no.</th>
-        <th>Heartbeat-phone</th>
-        <th>Heartbeat-watch</th>
-        <th>Data loaded-phone (MB)</th>
-        <th>Data loaded-watch (MB)</th>
-        <th>Phone no.</th>
-        <th>Last data upload (phone)</th>
-        <th>Last data upload (watch)</th>
-        <th>Device Info.</th>
+	      <th rowspan="2">Name</th>
+        <th rowspan="2">ID</th>
+        <th rowspan="2">Pswd.</th>
+        <th rowspan="2">Day no.</th>
+        <th rowspan="2">Phone no.</th>
+        <th rowspan="2" id="border">Device Info.</th>
+        <th colspan="2">Heartbeat</th>
+        <th colspan="2">Total data (MB)</th>
+        <th colspan="2">Daily data (MB)</th>
+        <th colspan="2">Last data upload</th>
+        <th rowspan="2"></th>
+
+    </tr>
+    <tr id="table_header">
+        <th>Phone</th>
+        <th>Watch</th>
+        <th>Phone</th>
+        <th>Watch</th>
+        <th>Phone</th>
+        <th>Watch</th>
+        <th>Phone</th>
+        <th>Watch</th>
     </tr>
 
     {% for participant in participants %}
-        <tr id="table_body" style="background:{% if participant.type == "test" %} #fcf2ff {% elif participant.type == "first" %} #e8fff0 {% elif participant.type == "second" %} #f8ffe0 {% endif %};">
-            <td><a href="/dashboard/{{ participant.id }}/">{{ participant.id }}</a></td>
-            <td>{{ participant.current_day_num }}</td>
-            <td>{{ participant.heartbeat_smartphone_diff }}</td>
-            <td>{{ participant.heartbeat_smartwatch_diff }}</td>
-            <td>{{ participant.phone_data_size }}</td>
-            <td>{{ participant.watch_data_size }}</td>
-            <td>{{ participant.phone_num }}</td>
-            <td>{{ participant.last_ds_smartphone_diff }}</td>
-            <td>{{ participant.last_ds_smartwatch_diff }}</td>
-            <td>{{ participant.device_info }}</td>
-        </tr>
+        {% if participant.id not in hidden_participants %}
+            <tr id="table_body" style="background:{% if participant.type == "test" %} #fcf2ff {% elif participant.type == "first" %} #e8fff0 {% elif participant.type == "second" %} #f8ffe0 {% endif %};">
+    	          <td>{{participant.name}}</td>
+                <td><a href="/dashboard/{{ participant.id }}/">{{participant.id}}</a></td>
+                <td>{{participant.password}}</td>
+                <td>{{ participant.current_day_num }}</td>
+                <td>{{ participant.phone_num }}</td>
+                <td id="border">{{ participant.device_info }}</td>
+                <td>{{ participant.heartbeat_smartphone_diff }}</td>
+                <td>{{ participant.heartbeat_smartwatch_diff }}</td>
+                <td>{{ participant.total_data_size_smartphone }}</td>
+                <td>{{ participant.total_data_size_smartwatch }}</td>
+                <td>{{ participant.phone_data_size }}</td>
+                <td>{{ participant.watch_data_size }}</td>
+                <td>{{ participant.last_ds_smartphone_diff }}</td>
+                <td>{{ participant.last_ds_smartwatch_diff }}</td>
+    
+            </tr>
+        {% endif %}
     {% endfor %}
 
 </table>

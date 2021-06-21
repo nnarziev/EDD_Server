@@ -196,13 +196,15 @@ def submit_api(request):
                     else:
                         participant.daily_data_size_smartphone = len(data_set) / 1024
                     participant.last_ds_smartphone = cur_datetime.timestamp()
+                    participant.total_data_smartphone += len(data_set) / 1024  # update total amount of data submitted from smartphone
                 elif device_name == DEVICE_TYPE_WATCH:
                     if cur_datetime.day == last_ds_watch.day:
                         participant.daily_data_size_smartwatch = participant.daily_data_size_smartwatch + (len(data_set) / 1024)
                     else:
                         participant.daily_data_size_smartwatch = len(data_set) / 1024
                     participant.last_ds_smartwatch = cur_datetime.timestamp()
-
+                    participant.total_data_smartwatch += len(data_set) / 1024  # update total amount of data submitted from smartwatch
+                    
                 participant.save()
                 # endregion
             except Exception as ex:

@@ -27,7 +27,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     '165.246.43.163',
-    '165.246.43.97'
+    '165.246.43.97',
+    '165.246.21.204'
 ]
 
 # Application definition
@@ -82,10 +83,10 @@ WSGI_APPLICATION = 'YouNoOne_Server.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'younoone_db',
+        'NAME': 'edd_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': '165.246.43.97',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }

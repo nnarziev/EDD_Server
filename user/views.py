@@ -68,26 +68,29 @@ def register_api(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def login_api(request):
+    print('-------------- Sign In -------------')
     try:
         params = extract_post_params(request)
         if 'username' in params and 'password' in params:
             username = params['username']
             password = params['password']
-            print('-------------- Sign In -------------')
             print("User: ", username, "\tPassword: ", password)
             if is_user_valid(username, password):
+                print("User valid")
                 participant = Participant.objects.get(id=username)
                 participant.last_login_datetime = datetime.datetime.now().timestamp()
                 participant.save()
                 return JsonResponse(data={'result': RES_SUCCESS})
             else:
+                print("User NOT valid")
                 return JsonResponse(data={
                     'result': RES_FAILURE, 'reason': 'wrong credentials passed'
                 })
         else:
+            print("User data is not passed properly!")
             return JsonResponse(data={'result': RES_BAD_REQUEST})
     except Exception or ValueError as e:
-        print(str(e))
+        print("Sign In Exception: ", str(e))
         return JsonResponse(data={'result': RES_BAD_REQUEST, 'reason': 'Username or Password was not passed as a POST argument!'})
 
 

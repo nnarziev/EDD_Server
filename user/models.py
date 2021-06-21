@@ -23,6 +23,8 @@ class Participant(models.Model):
     heartbeat_smartphone = models.BigIntegerField(default=datetime.datetime.now().timestamp())
     daily_data_size_smartwatch = models.FloatField(default=0)
     daily_data_size_smartphone = models.FloatField(default=0)
+    total_data_smartphone = models.FloatField(default=0)
+    total_data_smartwatch = models.FloatField(default=0)
     last_ds_smartphone = models.BigIntegerField(default=datetime.datetime.now().timestamp())
     last_ds_smartwatch = models.BigIntegerField(default=datetime.datetime.now().timestamp())
     type = models.CharField(default="", max_length=10)
@@ -68,6 +70,12 @@ class Participant(models.Model):
 
     def phone_data_size(self):
         return "{0:.2f}".format(round(self.daily_data_size_smartphone / 1024, 2))
+        
+    def total_data_size_smartwatch(self):
+        return "{0:.2f}".format(round(self.total_data_smartwatch / 1024, 2))
+        
+    def total_data_size_smartphone(self):
+        return "{0:.2f}".format(round(self.total_data_smartphone / 1024, 2))
 
     '''
     def strfdelta(tdelta, fmt):

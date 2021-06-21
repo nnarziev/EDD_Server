@@ -13,10 +13,13 @@ from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 from Tools import RES_BAD_REQUEST
 
+hidden_participants = ['a','fntony','daae','jmee','jju','miegul','hyam','A1','11','Rose','jin2st','flqhs7962','jin','min','kkh','youngnee','jiu','prji17','HAYU','dbstjd9409','mike','misohlee','jschun0210','wooazza','jungjun0402']
+
 
 def index(request):
     participants = Participant.objects.order_by('heartbeat_smartwatch')[:200]
     context = {
+        'hidden_participants':hidden_participants,
         'participants': participants
     }
     return render(request=request, template_name='index.html', context=context)
