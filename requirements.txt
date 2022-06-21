@@ -5,7 +5,7 @@ ffmpeg==1.4
 gast==0.2.0
 grpcio==1.17.0
 Markdown==3.0.1
-numpy==1.14.5
+numpy==1.22.0
 Pillow==5.3.0
 protobuf==3.6.1
 psycopg2-binary==2.8.3
